@@ -1,0 +1,3 @@
+import {readdir,readFile,mkdir,writeFile,rm} from 'node:fs/promises';
+import {join} from 'node:path';
+const assets={};async function collect(dir,prefix=''){for(const e of await readdir(dir,{withFileTypes:true})){const key=prefix+'/'+e.name;if(e.isDirectory())await collect(join(dir,e.name),key);else assets[key]=await readFile(join(dir,e.name),'utf8')}}await collect('public');await rm('dist',{recursive:true,force:true});await mkdir('dist/server',{recursive:true});await mkdir('dist/.openai',{recursive:true});await writeFile('dist/server/index.js','const ASSETS='+JSON.stringify(assets)+';\n'+await readFile('worker/index.js','utf8'));await writeFile('dist/.openai/hosting.json',await readFile('.openai/hosting.json'));console.log('Built Worker with embedded site assets');
